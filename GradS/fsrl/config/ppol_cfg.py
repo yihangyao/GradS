@@ -29,8 +29,8 @@ class TrainCfg:
 
     vanilla: bool = False
     random_con_selection: bool = False
-    gradient_shaping: bool = False
-    max_singleAC: bool = True
+    gradient_shaping: bool = True
+    max_singleAC: bool = False
 
     # algorithm params
     conditioned_sigma: bool = True
