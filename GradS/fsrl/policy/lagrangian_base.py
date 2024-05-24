@@ -159,60 +159,6 @@ class LagrangianPolicy(BasePolicy):
                 for i, state_dict in enumerate(lag_optim_cfg):
                     self.lag_optims[i].load_state_dict(state_dict)
 
-    # def safety_loss(self, values: List) -> Tuple[torch.tensor, dict]:
-    #     """Compute the safety loss based on Lagrangian and return the scaling factor.
-    #     :param list values: the cost values that want to be constrained. They will be
-    #         multiplied with the Lagrangian multipliers.
-    #     :return tuple[torch.tensor, dict]: the total safety loss and a dictionary of info
-    #         (including the rescaling factor, lagrangian, safety loss etc.)
-    #     """
-
-    #     # Modified to calculate the gradient similarity
-
-    #     # get a list of lagrangian multiplier
-    #     lags = [optim.get_lag() for optim in self.lag_optims]
-    #     # Alg. 1 of http://proceedings.mlr.press/v119/stooke20a/stooke20a.pdf
-    #     rescaling = 1. / (np.sum(lags) + 1) if self.rescaling else 1
-    #     assert len(values) == len(lags), "lags and values length must be equal"
-    #     stats = {"loss/rescaling": rescaling}
-    #     loss_safety_total = 0.
-    #     safety_loss_list = []
-    #     for i, (value, lagrangian) in enumerate(zip(values, lags)):
-    #         safety_loss_i = torch.mean(value)
-    #         safety_loss_list.append(safety_loss_i)
-
-    #         loss = torch.mean(value * lagrangian)
-    #         loss_safety_total += loss
-    #         suffix = "" if i == 0 else "_" + str(i)
-    #         stats["loss/lagrangian" + suffix] = lagrangian
-    #         stats["loss/actor_safety" + suffix] = loss.item()
-
-    #     self.optim.zero_grad()
-    #     safety_loss_grad_list = []
-    #     for i in range(len(safety_loss_list)):
-
-    #         self.optim.zero_grad()
-    #         safety_loss_list[i].backward(retain_graph=True)
-
-    #         grads = []
-    #         for param in self.actor.parameters():
-    #             grads.append(param.grad.view(-1))
-    #         grads = torch.cat(grads)
-    #         safety_loss_grad_list.append(grads)
-    #         self.optim.zero_grad()
-
-    #     cos = nn.CosineSimilarity(dim=0, eps=1e-6)
-    #     # Storing the gradient simalirity
-    #     for i in range(1, len(safety_loss_grad_list)):
-    #         sim = torch.mean(cos(safety_loss_grad_list[0], safety_loss_grad_list[i])).item()
-    #         stats["grad_sim/0grad_"+str(i)] = sim
-
-    #     for i in range( len(safety_loss_grad_list) - 1):
-    #         sim = torch.mean(cos(safety_loss_grad_list[-1], safety_loss_grad_list[i])).item()
-    #         stats["grad_sim/-1grad_"+str(i)] = sim
-
-    #     return loss_safety_total, stats
-
     def safety_loss(self, values: List, required_GS = True) -> Tuple[torch.tensor, dict]:
         """Compute the safety loss based on Lagrangian and return the scaling factor.
 
@@ -582,15 +528,6 @@ class LagrangianUPolicy_modified(LagrangianPolicy):
             max_index = np.random.randint(len(lags))
         # Alg. 1 of http://proceedings.mlr.press/v119/stooke20a/stooke20a.pdf
         rescaling = 1. / (lags[max_index] + 1) if self.rescaling else 1 # %
-
-        # constraint_list = []
-        # constraint_info = {}
-        # for i in range(len(values)):
-        #     g = (values[i]-self.cost_limit[i]).mean().detach().cpu().numpy()
-        #     constraint_list.append(g)
-        #     constraint_info["g_"+str(i)] = g
-        # constraint_list = np.array(constraint_list)
-        # index = np.argmax(constraint_list)
 
         assert len(values) == len(lags), "lags and values length must be equal"
         stats = {
