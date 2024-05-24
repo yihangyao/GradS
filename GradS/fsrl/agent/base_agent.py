@@ -238,7 +238,8 @@ class OnpolicyAgent(BaseAgent):
         resume: bool = False,
         save_ckpt: bool = True,
         verbose: bool = True,
-        show_progress: bool = True
+        show_progress: bool = True,
+        valid_cost_num: int = 3
     ) -> None:
         """Train the policy on a set of training environments.
 
@@ -313,7 +314,8 @@ class OnpolicyAgent(BaseAgent):
             resume_from_log=resume,
             save_model_interval=save_interval,
             verbose=verbose,
-            show_progress=show_progress
+            show_progress=show_progress,
+            valid_cost_num=valid_cost_num
         )
 
         for epoch, _epoch_stat, info in trainer:

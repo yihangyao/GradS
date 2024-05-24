@@ -5,7 +5,8 @@ from typing import Optional, Tuple
 @dataclass
 class TrainCfg:
     # general task params
-    task: str = "SafetyCarCircle-v0" #
+    task: str = "SafetyBallCircle-v0" #
+    short_task: str = "DC-v3"
 
     safety_gymnasium_task: bool = False
     velocity_bound = 0.7
@@ -13,13 +14,13 @@ class TrainCfg:
     concat_dim = 5 # useless
     # velo_thres = 50
     # task config
-    cost_0_redundant_num: int = 1 # collision
+    cost_0_redundant_num: int = 1 
     cost_1_redundant_num: int = 1
     cost_2_redundant_num: int = 1
 
-    thre_0: float = 25
-    thre_1: float = 25
-    thre_2: float = 25
+    thre_0: float = 50
+    thre_1: float = 50
+    thre_2: float = 50
 
     cost_limit: Tuple[float, ...] = 25 # , 20, 100, 20, 100, 20, 100
     device: str = "cpu"
@@ -78,40 +79,90 @@ class TrainCfg:
     render: bool = False
     # logger params
     logdir: str = "logs"
-    project: str = "CC-v3-PPO" # 
+    project: str = "BC-v3-GradS(PPO)" # 
     group: Optional[str] = None
     name: Optional[str] = None
     prefix: Optional[str] = "ppol" # 
-    suffix: Optional[str] = ""
-
-
-# bullet-safety-gym task default configs
-
+    suffix: Optional[str] = "-0524-1"
 
 @dataclass
-class Bullet1MCfg(TrainCfg):
-    epoch: int = 200
-
+class BC_v2(TrainCfg):
+    task: str = "SafetyBallCircle-v0" #
+    epoch: int = 400
+    short_task: str = "BC-v2"
+    thre_0: float = 50
+    thre_1: float = 50
+    thre_2: float = 25
+    cost_0_redundant_num: int = 1 
+    cost_1_redundant_num: int = 1
+    cost_2_redundant_num: int = 0
 
 @dataclass
-class Bullet5MCfg(TrainCfg):
-    epoch: int = 500
-
+class CC_v2(TrainCfg):
+    task: str = "SafetyCarCircle-v0" #
+    epoch: int = 400
+    short_task: str = "CC-v2"
+    thre_0: float = 50
+    thre_1: float = 50
+    thre_2: float = 20
+    cost_0_redundant_num: int = 1 
+    cost_1_redundant_num: int = 1
+    cost_2_redundant_num: int = 0
 
 @dataclass
-class Bullet10MCfg(TrainCfg):
-    epoch: int = 1000
+class DC_v2(TrainCfg):
+    task: str = "SafetyDroneCircle-v0" #
+    epoch: int = 600
+    short_task: str = "DC-v2"
+    thre_0: float = 250
+    thre_1: float = 50
+    thre_2: float = 50
+    cost_0_redundant_num: int = 1 
+    cost_1_redundant_num: int = 1
+    cost_2_redundant_num: int = 0
+
+@dataclass
+class BC_v3(TrainCfg):
+    task: str = "SafetyBallCircle-v0" #
+    epoch: int = 400
+    short_task: str = "BC-v3"
+    thre_0: float = 50
+    thre_1: float = 50
+    thre_2: float = 25
+    cost_0_redundant_num: int = 1 # collision
+    cost_1_redundant_num: int = 1
+    cost_2_redundant_num: int = 1
+
+@dataclass
+class CC_v3(TrainCfg):
+    task: str = "SafetyCarCircle-v0" #
+    epoch: int = 400
+    short_task: str = "CC-v3"
+    thre_0: float = 50
+    thre_1: float = 50
+    thre_2: float = 20
+    cost_0_redundant_num: int = 1 # collision
+    cost_1_redundant_num: int = 1
+    cost_2_redundant_num: int = 1
+
+@dataclass
+class DC_v3(TrainCfg):
+    task: str = "SafetyDroneCircle-v0" #
+    epoch: int = 600
+    short_task: str = "DC-v3"
+    thre_0: float = 250
+    thre_1: float = 50
+    thre_2: float = 50
+    cost_0_redundant_num: int = 1 # collision
+    cost_1_redundant_num: int = 1
+    cost_2_redundant_num: int = 1
 
 
 # safety gymnasium task default configs
-
-
 @dataclass
 class MujocoBaseCfg(TrainCfg):
     # task: str = "SafetyPointCircle1-v0"
     epoch: int = 250
-    # cost_limit: float = 25
-    # collecting params
     episode_per_collect: int = 20
     step_per_epoch: int = 20000
     repeat_per_collect: int = 4  # increasing this can improve efficiency, but less stability

@@ -112,6 +112,7 @@ class BaseTrainer(ABC):
         logger: BaseLogger = BaseLogger(),
         verbose: bool = True,
         show_progress: bool = True,
+        valid_cost_num: int = 3
     ):
 
         self.policy = policy
@@ -119,6 +120,7 @@ class BaseTrainer(ABC):
         self.test_collector = test_collector
         self.logger = logger
         self.cost_limit = cost_limit
+        self.valid_cost_num = valid_cost_num
 
         self.start_time = time.time()
 
@@ -209,18 +211,6 @@ class BaseTrainer(ABC):
                     sub_cost_0=stats_train["sub_cost_0"],
                     sub_cost_1=stats_train["sub_cost_1"],
                     sub_cost_2=stats_train["sub_cost_2"],
-
-                    sub_cost_3=stats_train["sub_cost_3"],
-                    sub_cost_4=stats_train["sub_cost_4"],
-                    sub_cost_5=stats_train["sub_cost_5"],
-
-                    sub_cost_6=stats_train["sub_cost_6"],
-                    sub_cost_7=stats_train["sub_cost_7"],
-
-                    sub_cost_8=stats_train["sub_cost_8"],
-                    sub_cost_9=stats_train["sub_cost_9"],
-                    sub_cost_10=stats_train["sub_cost_10"],
-                    
                     rew=stats_train["rew"],
                     length=stats_train["len"]
                 )
@@ -270,16 +260,6 @@ class BaseTrainer(ABC):
         cost = self.logger.get_mean(mode + "/cost")
         # TODO
 
-        # if self.best_perf_cost[0] > self.cost_limit[0] or self.best_perf_cost[1] > self.cost_limit[1]:
-        #     if cost <= self.cost_limit or rew > self.best_perf_rew:
-        #         self.best_perf_cost = cost
-        #         self.best_perf_rew = rew
-        #         return True
-        # else:
-        #     if cost <= self.cost_limit and rew > self.best_perf_rew:
-        #         self.best_perf_cost = cost
-        #         self.best_perf_rew = rew
-        #         return True
         return False
 
     def test_step(self) -> Dict[str, Any]:
@@ -291,34 +271,22 @@ class BaseTrainer(ABC):
         self.policy.eval()
         stats_test = self.test_collector.collect(n_episode=self.episode_per_test)
 
-        self.logger.store(
-            **{
-                "test/reward": stats_test["rew"],
-                "test/cost": stats_test["cost"],
-                "test/length": int(stats_test["len"]),
-                "test/sub_cost_0": stats_test["sub_cost_0"],
-                "test/sub_cost_1": stats_test["sub_cost_1"],
-                "test/sub_cost_2": stats_test["sub_cost_2"],
-                "test/sub_cost_3": stats_test["sub_cost_3"],
-                "test/sub_cost_4": stats_test["sub_cost_4"],
-                "test/sub_cost_5": stats_test["sub_cost_5"],
-                "test/sub_cost_6": stats_test["sub_cost_6"],
-                "test/sub_cost_7": stats_test["sub_cost_7"],
-                "test/sub_cost_8": stats_test["sub_cost_8"],
-                "test/sub_cost_9": stats_test["sub_cost_9"],
-                "test/sub_cost_10": stats_test["sub_cost_10"],
+        test_info = {
+            "reward": stats_test["rew"],
+            "cost": stats_test["cost"],
+            "length": int(stats_test["len"]),
+        }
 
-                "test/sub_cost_11": stats_test["sub_cost_11"],
-                "test/sub_cost_12": stats_test["sub_cost_12"],
-                "test/sub_cost_13": stats_test["sub_cost_13"],
-                "test/sub_cost_14": stats_test["sub_cost_14"],
-                "test/sub_cost_15": stats_test["sub_cost_15"],
-                "test/sub_cost_16": stats_test["sub_cost_16"],
-                "test/sub_cost_17": stats_test["sub_cost_17"],
-                "test/sub_cost_18": stats_test["sub_cost_18"],
-                "test/sub_cost_19": stats_test["sub_cost_19"],
-                "test/sub_cost_20": stats_test["sub_cost_20"],
-            }
+        for i in range(self.valid_cost_num):
+            test_info.update(
+                {
+                    "sub_cost_"+str(i): stats_test["sub_cost_"+str(i)],
+                }
+            )
+
+        self.logger.store(
+            **test_info,
+            tab="test"
         )
         return stats_test
 
@@ -330,36 +298,23 @@ class BaseTrainer(ABC):
         self.env_step += int(stats_train["n/st"])
         self.cum_cost += stats_train["total_cost"]
         self.cum_episode += int(stats_train["n/ep"])
-        self.logger.store(
-            **{
-                "update/episode": self.cum_episode,
-                "update/cum_cost": self.cum_cost,
-                "train/reward": stats_train["rew"],
-                "train/cost": stats_train["cost"],
-                "train/length": int(stats_train["len"]),
-                "train/sub_cost_0": stats_train["sub_cost_0"],
-                "train/sub_cost_1": stats_train["sub_cost_1"],
-                "train/sub_cost_2": stats_train["sub_cost_2"],
-                "train/sub_cost_3": stats_train["sub_cost_3"],
-                "train/sub_cost_4": stats_train["sub_cost_4"],
-                "train/sub_cost_5": stats_train["sub_cost_5"],
-                "train/sub_cost_6": stats_train["sub_cost_6"],
-                "train/sub_cost_7": stats_train["sub_cost_7"],
-                "train/sub_cost_8": stats_train["sub_cost_8"],
-                "train/sub_cost_9": stats_train["sub_cost_9"],
-                "train/sub_cost_10": stats_train["sub_cost_10"],
+        train_info = {"episode": self.cum_episode,
+                      "cum_cost": self.cum_cost,
+                      "reward": stats_train["rew"],
+                      "cost": stats_train["cost"],
+                      "length": int(stats_train["len"])
+                      }
+        for i in range(self.valid_cost_num):
+            train_info.update(
+                {
+                    "sub_cost_"+str(i): stats_train["sub_cost_"+str(i)],
+                }
+            )
 
-                "train/sub_cost_11": stats_train["sub_cost_11"],
-                "train/sub_cost_12": stats_train["sub_cost_12"],
-                "train/sub_cost_13": stats_train["sub_cost_13"],
-                "train/sub_cost_14": stats_train["sub_cost_14"],
-                "train/sub_cost_15": stats_train["sub_cost_15"],
-                "train/sub_cost_16": stats_train["sub_cost_16"],
-                "train/sub_cost_17": stats_train["sub_cost_17"],
-                "train/sub_cost_18": stats_train["sub_cost_18"],
-                "train/sub_cost_19": stats_train["sub_cost_19"],
-                "train/sub_cost_20": stats_train["sub_cost_20"],
-            }
+
+        self.logger.store(
+            **train_info,
+            tab="train"
         )
         return stats_train
 

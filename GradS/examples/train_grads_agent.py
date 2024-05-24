@@ -13,51 +13,26 @@ from tianshou.env import BaseVectorEnv, ShmemVectorEnv, SubprocVectorEnv
 
 from fsrl.agent import PPOLagAgent
 from fsrl.config.ppol_cfg import (
-    Bullet1MCfg,
-    Bullet5MCfg,
-    Bullet10MCfg,
-    Mujoco2MCfg,
-    Mujoco10MCfg,
-    Mujoco20MCfg,
-    MujocoBaseCfg,
+    BC_v2,
+    CC_v2,
+    DC_v2,
+    BC_v3,
+    CC_v3,
+    DC_v3,
     TrainCfg,
 )
+
 from fsrl.utils import BaseLogger, TensorboardLogger, WandbLogger
 from fsrl.utils.exp_util import auto_name, redundant_wrapper, vel_wrapper
 
 TASK_TO_CFG = {
     # bullet safety gym tasks
-    "SafetyCarRun-v0": Bullet1MCfg,
-    "SafetyBallRun-v0": Bullet1MCfg,
-    "SafetyBallCircle-v0": Bullet1MCfg,
-    "SafetyCarCircle-v0": TrainCfg,
-    "SafetyDroneRun-v0": TrainCfg,
-    "SafetyAntRun-v0": TrainCfg,
-    "SafetyDroneCircle-v0": Bullet5MCfg,
-    "SafetyAntCircle-v0": Bullet10MCfg,
-    # safety gymnasium tasks
-    "SafetyPointCircle1Gymnasium-v0": Mujoco2MCfg,
-    "SafetyPointCircle2Gymnasium-v0": Mujoco2MCfg,
-    "SafetyCarCircle1Gymnasium-v0": Mujoco2MCfg,
-    "SafetyCarCircle2Gymnasium-v0": Mujoco2MCfg,
-    "SafetyPointGoal1Gymnasium-v0": MujocoBaseCfg,
-    "SafetyPointGoal2Gymnasium-v0": MujocoBaseCfg,
-    "SafetyPointButton1Gymnasium-v0": MujocoBaseCfg,
-    "SafetyPointButton2Gymnasium-v0": MujocoBaseCfg,
-    "SafetyPointPush1Gymnasium-v0": MujocoBaseCfg,
-    "SafetyPointPush2Gymnasium-v0": MujocoBaseCfg,
-    "SafetyCarGoal1Gymnasium-v0": MujocoBaseCfg,
-    "SafetyCarGoal2Gymnasium-v0": MujocoBaseCfg,
-    "SafetyCarButton1Gymnasium-v0": MujocoBaseCfg,
-    "SafetyCarButton2Gymnasium-v0": MujocoBaseCfg,
-    "SafetyCarPush1Gymnasium-v0": MujocoBaseCfg,
-    "SafetyCarPush2Gymnasium-v0": MujocoBaseCfg,
-    "SafetyHalfCheetahVelocityGymnasium-v1": MujocoBaseCfg,
-    "SafetyHopperVelocityGymnasium-v1": MujocoBaseCfg,
-    "SafetySwimmerVelocityGymnasium-v1": MujocoBaseCfg,
-    "SafetyWalker2dVelocityGymnasium-v1": Mujoco10MCfg,
-    "SafetyAntVelocityGymnasium-v1": Mujoco10MCfg,
-    "SafetyHumanoidVelocityGymnasium-v1": Mujoco20MCfg,
+    "BC-v2": BC_v2,
+    "CC-v2": CC_v2,
+    "DC-v2": DC_v2,
+    "BC-v3": BC_v3,
+    "CC-v3": CC_v3,
+    "DC-v3": DC_v3,
 }
 
 
@@ -65,14 +40,14 @@ TASK_TO_CFG = {
 def train(args: TrainCfg):
 
     task = args.task
-    default_cfg = TASK_TO_CFG[task]() if task in TASK_TO_CFG else TrainCfg()
+    short_task = args.short_task
+    default_cfg = TASK_TO_CFG[short_task]() if short_task in TASK_TO_CFG else TrainCfg()
     # use the default configs instead of the input args.
     if args.use_default_cfg:
-        default_cfg.task = args.task
         default_cfg.seed = args.seed
         default_cfg.device = args.device
         default_cfg.logdir = args.logdir
-        default_cfg.project = args.project
+        default_cfg.project = default_cfg.short_task
         default_cfg.group = args.group
         default_cfg.suffix = args.suffix
         args = default_cfg
@@ -81,8 +56,9 @@ def train(args: TrainCfg):
     cost_1_thres = args.thre_1
     cost_2_thres = args.thre_2
 
+    # cost_limit_new = [cost_0_thres, cost_1_thres, cost_2_thres]
     cost_limit_new = []
-
+    
     if args.safety_gymnasium_task:
         # cost_1_thres = args.velo_thres
         for _ in range(args.cost_0_redundant_num):
@@ -108,15 +84,16 @@ def train(args: TrainCfg):
     cfg = asdict(args)
     default_cfg = asdict(default_cfg)
     if args.name is None:
-        args.name = auto_name(default_cfg, cfg, args.prefix, args.suffix)
+        args.name = "GradS(PPOL)-" + auto_name(default_cfg, cfg, args.prefix, args.suffix)
     if args.group is None:
-        args.group = args.task + "-cost-0-" + str(cost_0_thres) + "-cost-1-" + str(cost_1_thres) + "-cost-2-" + str(cost_2_thres) + \
-              "-c0-" + str(args.cost_0_redundant_num) + \
-              "-c1-" + str(args.cost_1_redundant_num) + "-c2-" + str(args.cost_2_redundant_num) + \
-              "-V-" + str(args.vanilla) + "-R-" + str(args.random_con_selection) + \
-              "-G-" + str(args.gradient_shaping) + "-M-" + str(args.max_singleAC)
-            #   "-PID-" + str(args.lagrangian_pid[0]) + "-" + str(args.lagrangian_pid[1]) + "-" + str(args.lagrangian_pid[2])
-        
+        args.group = "GradS-" + args.short_task # + "-cost-0-" + str(cost_0_thres) + "-cost-1-" + str(cost_1_thres) + "-cost-2-" + str(cost_2_thres) # + \
+        if args.cost_0_redundant_num > 0:
+            args.group += ("-cost-0-" + str(cost_0_thres))
+        if args.cost_1_redundant_num > 0:
+            args.group += ("-cost-1-" + str(cost_1_thres))
+        if args.cost_2_redundant_num > 0:
+            args.group += ("-cost-2-" + str(cost_1_thres))
+        args.group += args.suffix
     if args.safety_gymnasium_task:
         args.group  = "vel-bound-" + str(args.velocity_bound) + '-' +  args.group 
 
@@ -200,6 +177,8 @@ def train(args: TrainCfg):
                                                       cost_1_redunt_num=args.cost_1_redundant_num,
                                                       cost_2_redunt_num=args.cost_2_redundant_num) for _ in range(args.testing_num)])
 
+    valid_cost_num = len(cost_limit_new)
+    
     # start training
     agent.learn(
         train_envs=train_envs,
@@ -216,6 +195,7 @@ def train(args: TrainCfg):
         resume=args.resume,
         save_ckpt=args.save_ckpt,
         verbose=args.verbose,
+        valid_cost_num=valid_cost_num
     )
 
     if __name__ == "__main__":

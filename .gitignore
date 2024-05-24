@@ -12,6 +12,7 @@ envs/safety-gym/mujoco200_linux
 
 *.hdf5
 *.pyc
+*.cpython-38.pyc
 
 **/figure/**
 **/wandb/**

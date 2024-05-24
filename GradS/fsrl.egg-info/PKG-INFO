@@ -17,10 +17,42 @@ Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
-Provides-Extra: dev
-Provides-Extra: mujoco
-Provides-Extra: pybullet
 License-File: LICENSE
+Requires-Dist: tianshou~=0.5.0
+Requires-Dist: gymnasium>=0.26.3
+Requires-Dist: pyrallis==0.3.1
+Requires-Dist: pyyaml~=6.0
+Requires-Dist: tqdm
+Requires-Dist: numpy>1.16.0
+Requires-Dist: tensorboard>=2.5.0
+Requires-Dist: torch>=1.4.0
+Requires-Dist: numba>=0.51.0
+Requires-Dist: wandb~=0.14.0
+Requires-Dist: h5py>=2.10.0
+Requires-Dist: protobuf~=3.19.0
+Requires-Dist: prettytable~=3.7.0
+Requires-Dist: bullet_safety_gym
+Provides-Extra: dev
+Requires-Dist: sphinx==6.2.1; extra == "dev"
+Requires-Dist: sphinx_rtd_theme==1.2.0; extra == "dev"
+Requires-Dist: jinja2==3.0.3; extra == "dev"
+Requires-Dist: sphinxcontrib-bibtex==2.5.0; extra == "dev"
+Requires-Dist: flake8; extra == "dev"
+Requires-Dist: flake8-bugbear; extra == "dev"
+Requires-Dist: yapf; extra == "dev"
+Requires-Dist: isort; extra == "dev"
+Requires-Dist: pytest~=7.3.1; extra == "dev"
+Requires-Dist: pytest-cov~=4.0.0; extra == "dev"
+Requires-Dist: networkx; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
+Requires-Dist: pydocstyle; extra == "dev"
+Requires-Dist: doc8==0.11.2; extra == "dev"
+Requires-Dist: scipy; extra == "dev"
+Requires-Dist: pre-commit; extra == "dev"
+Provides-Extra: mujoco
+Requires-Dist: mujoco_py; extra == "mujoco"
+Provides-Extra: pybullet
+Requires-Dist: pybullet; extra == "pybullet"
 
 <div align="center">
   <a href="http://fsrl.readthedocs.io"><img width="300px" height="auto" src="https://github.com/liuzuxin/fsrl/raw/main/docs/_static/images/fsrl-logo.png"></a>

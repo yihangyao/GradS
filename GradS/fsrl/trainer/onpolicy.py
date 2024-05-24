@@ -67,7 +67,8 @@ class OnpolicyTrainer(BaseTrainer):
         resume_from_log: bool = False,
         logger: BaseLogger = BaseLogger(),
         verbose: bool = True,
-        show_progress: bool = True
+        show_progress: bool = True,
+        valid_cost_num: int = 3
     ):
         super().__init__(
             learning_type="onpolicy",
@@ -86,7 +87,8 @@ class OnpolicyTrainer(BaseTrainer):
             resume_from_log=resume_from_log,
             logger=logger,
             verbose=verbose,
-            show_progress=show_progress
+            show_progress=show_progress,
+            valid_cost_num=valid_cost_num
         )
 
     def policy_update_fn(self, stats_train: Dict[str, Any]) -> None:
