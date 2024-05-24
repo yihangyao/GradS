@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 class TrainCfg:
     # general task params
     task: str = "SafetyBallCircle-v0" #
-    short_task: str = "DC-v3"
+    short_task: str = "BC-v3"
 
     safety_gymnasium_task: bool = False
     velocity_bound = 0.7
@@ -129,7 +129,7 @@ class BC_v3(TrainCfg):
     thre_0: float = 50
     thre_1: float = 50
     thre_2: float = 25
-    cost_0_redundant_num: int = 1 # collision
+    cost_0_redundant_num: int = 1
     cost_1_redundant_num: int = 1
     cost_2_redundant_num: int = 1
 
@@ -141,7 +141,7 @@ class CC_v3(TrainCfg):
     thre_0: float = 50
     thre_1: float = 50
     thre_2: float = 20
-    cost_0_redundant_num: int = 1 # collision
+    cost_0_redundant_num: int = 1
     cost_1_redundant_num: int = 1
     cost_2_redundant_num: int = 1
 
@@ -153,7 +153,7 @@ class DC_v3(TrainCfg):
     thre_0: float = 250
     thre_1: float = 50
     thre_2: float = 50
-    cost_0_redundant_num: int = 1 # collision
+    cost_0_redundant_num: int = 1 
     cost_1_redundant_num: int = 1
     cost_2_redundant_num: int = 1
 
